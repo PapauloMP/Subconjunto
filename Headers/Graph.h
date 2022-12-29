@@ -58,7 +58,7 @@ class Graph{
         void printDifference(ofstream &outputFile);
         void printPert(ofstream &outputFile, std::stack<Node*>& pertPath);
         void topologicalSort();
-        void printDominatingSet(ofstream &outputFile);
+        void printDominatingSet(ofstream &outputFile, std::vector<Node*>* solution, int option);
         std::vector<Node*> greedy();
         std::vector<Node*> greedyRandom(float alfa, int numIter);
         std::vector<Node*> greedyRandomReactive(float* alfa, int alfaSize, int block, int numIter);

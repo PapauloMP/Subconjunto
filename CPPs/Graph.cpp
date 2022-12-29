@@ -3,6 +3,7 @@
 #include <stack>
 #include <algorithm>
 #include <list>
+#include <cmath>
 #include <cfloat>
 
 using namespace std;
@@ -503,22 +504,10 @@ bool Graph::topologicalSortRec(Node* node, bool* marked, bool* closed, stack<Nod
 
 /// -----AUXILIARES PARA OS ALGORITMOS GULOSOS-----
 
-struct compareNodes{
-    bool operator()(Node* node1, Node* node2) {
-        return node1->getInDegree() < node2->getInDegree();
-    }
-};
-
 bool compareNode(Node* const x, Node* const y){
-    return x->getInDegree() > y->getInDegree();
-}
-
-std::priority_queue<Node*, std::vector<Node*>, compareNodes> orderCandidates2(Graph* graph){
-    std::priority_queue<Node*, std::vector<Node*>, compareNodes> candidates;
-    for (Node* node = graph->getFirstNode(); node != nullptr; node = node->getNextNode()){
-        candidates.push(node);
-    }
-    return candidates;
+    int xvalue = (int) x->getWeight()/x->getInDegree();
+    int yvalue = (int) y->getWeight()/y->getInDegree();
+    return xvalue < yvalue;
 }
 
 std::vector<Node*> orderCandidates(Graph* graph){
@@ -552,7 +541,6 @@ std::vector<Node*> Graph::greedy() {
         solution.push_back(bestNode);
         quality += bestNode->getWeight();
 
-
         if(!reached[bestNode->getId()]) {
             cont++;
             reached[bestNode->getId()] = true;
@@ -568,6 +556,7 @@ std::vector<Node*> Graph::greedy() {
     }
 
     std::cout << "QUALIDADE: " << quality << std::endl;
+    std::cout << "SEMENTE DE RANDOMIZACAO: -- " << std::endl;
 
     return solution;
 }
@@ -603,7 +592,6 @@ std::vector<Node*> Graph::greedyRandom(float alpha, int numIter){
             index = getRandomIndex(alpha, (int)LC.size());
             bestNode = LC.at(index);
 
-
             solution.push_back(bestNode);
             quality += bestNode->getWeight();
 
@@ -620,7 +608,6 @@ std::vector<Node*> Graph::greedyRandom(float alpha, int numIter){
             }
 
             LC.erase(LC.cbegin() + index);
-            //i++;
         }
 
         if(quality < bestQuality || bestQuality == 0) {
@@ -630,6 +617,7 @@ std::vector<Node*> Graph::greedyRandom(float alpha, int numIter){
     }
 
     std::cout << "QUALIDADE: " << bestQuality << std::endl;
+    std::cout << "SEMENTE DE RANDOMIZACAO: time(nullptr) " << std::endl;
 
     return bestSolution;
 }
@@ -639,7 +627,7 @@ std::vector<Node*> Graph::greedyRandom(float alpha, int numIter){
 void updateProbabilities(float *probabilities, float* alphaAverage, float qualityBestSol, int numAlfas){
     float sumProbabilities = 0;
     for (int i = 0; i < numAlfas; ++i) {
-        float q = qualityBestSol / alphaAverage[i]; // Qi = (F(S*)/Ai)
+        float q = (float)pow((qualityBestSol/alphaAverage[i]), 10); // Qi = (F(S*)/Ai)^x
         probabilities[i] = q;
         sumProbabilities += probabilities[i];
     }
@@ -695,12 +683,8 @@ std::vector<Node *> Graph::greedyRandomReactive(float* alpha, int alphaSize, int
 
     for (int i = 0; i < numIter; i++) {
 
-        if(i % 10 == 0 && i != 0){
+        if(i % block == 0 && i != 0){
             updateProbabilities(probabilities, alphaAverage, bestQuality, alphaSize);
-            cout << "PROBABILIDADES: " << endl;
-            for (int j = 0; j < alphaSize; ++j) {
-                cout << "Probabilidade[" << j << "]: " << probabilities[j] << endl;
-            }
         }
 
         int cont = 0;
@@ -735,11 +719,10 @@ std::vector<Node *> Graph::greedyRandomReactive(float* alpha, int alphaSize, int
                 }
             }
 
-            sumQualities[alphaIndex] += quality*quality;
+            sumQualities[alphaIndex] += quality;
             alphaAverage[alphaIndex] = sumQualities[alphaIndex] / (float)usesForAlpha[alphaIndex];
 
             LC.erase(LC.cbegin() + index);
-            //i++;
         }
 
         if(quality < bestQuality || bestQuality == 0) {
@@ -749,9 +732,10 @@ std::vector<Node *> Graph::greedyRandomReactive(float* alpha, int alphaSize, int
         }
     }
 
-    std::cout << "--MELHOR SOLUÇÃO--" << bestQuality << std::endl;
+    std::cout << "--MELHOR SOLUÇÃO--" << std::endl;
     std::cout << "QUALIDADE: " << bestQuality << std::endl;
     std::cout << "ALFA: " << alpha[bestAlpha] << std::endl;
+    std::cout << "SEMENTE DE RANDOMIZACAO: time(nullptr) " << std::endl;
 
     return bestSolution;
 }

@@ -9,7 +9,6 @@
 #include "Headers/Node.h"
 
 using namespace std;
-void printDominatingSet(ofstream &outputFile, std::vector<Node*>* solution);
 
 Graph* leitura(ifstream& input_file, int directed, int weightedEdge, int weightedNode){
 
@@ -98,13 +97,9 @@ int menu(){
 
     cout << "MENU" << endl;
     cout << "----" << endl;
-    cout << "[1] Grafo interseccao" << endl;
-    cout << "[2] Grafo uniao" << endl;
-    cout << "[3] Grafo diferenca" << endl;
-    cout << "[4] Rede Pert" << endl;
-    cout << "[5] Algoritmo guloso" << endl;
-    cout << "[6] Algoritmo guloso randomizado adaptativo" << endl;
-    cout << "[7] Algoritmo guloso randomizado adaptativo" << endl;
+    cout << "[1] Algoritmo guloso" << endl;
+    cout << "[2] Algoritmo guloso randomizado adaptativo" << endl;
+    cout << "[3] Algoritmo guloso randomizado adaptativo reativo" << endl;
     cout << "[0] Sair" << endl;
 
     cin >> selecao;
@@ -115,29 +110,6 @@ int menu(){
 
 void selecionar(int selecao, Graph* graph, ofstream& output_file){
 
-    //GRAFO CRIADO PARA TESTES
-    Graph* g = new Graph(graph->getDirected(), graph->getWeightedEdge(), graph->getWeightedNode());
-    g->insertEdge(3,4,1);
-    g->insertEdge(3,5,1);
-    g->insertEdge(3,6,1);
-    g->insertEdge(3,7,1);
-    g->insertEdge(4,3,1);
-    g->insertEdge(4,5,1);
-    g->insertEdge(4,6,1);
-    g->insertEdge(4,7,1);
-    g->insertEdge(5,3,1);
-    g->insertEdge(5,4,1);
-    g->insertEdge(5,6,1);
-    g->insertEdge(5,7,1);
-    g->insertEdge(6,3,1);
-    g->insertEdge(6,4,1);
-    g->insertEdge(6,5,1);
-    g->insertEdge(6,7,1);
-    g->insertEdge(7,3,1);
-    g->insertEdge(7,4,1);
-    g->insertEdge(7,5,1);
-    g->insertEdge(7,6,1);
-
     chrono::steady_clock::time_point start;
     chrono::steady_clock::time_point end;
     chrono::steady_clock::duration elapsed;
@@ -146,66 +118,16 @@ void selecionar(int selecao, Graph* graph, ofstream& output_file){
         case 1: {
             start = chrono::steady_clock::now();
 
-            Graph* intersection;
-            intersection = *graph & g;
-
-            end = chrono::steady_clock::now();
-            elapsed  = end - start;
-
-            intersection->printIntersection(output_file);
-            break;
-        }
-        case 2: {
-            start = chrono::steady_clock::now();
-
-            Graph* sum;
-            sum = *graph + g;
-
-            end = chrono::steady_clock::now();
-            elapsed  = end - start;
-
-            sum->printSum(output_file);
-            break;
-        }
-        case 3: {
-            start = chrono::steady_clock::now();
-
-            Graph* diff;
-            diff = *graph - g;
-
-            end = chrono::steady_clock::now();
-            elapsed  = end - start;
-
-            diff->printDifference(output_file);
-            break;
-        }
-        case 4: {
-            start = chrono::steady_clock::now();
-
-            graph->topologicalSort();
-            std::stack<Node*> pertSolution = graph->pert();
-
-            end = chrono::steady_clock::now();
-            elapsed  = end - start;
-
-            graph->printPert(output_file, pertSolution);
-            break;
-        }
-        case 5: {
-            start = chrono::steady_clock::now();
-
             auto solution = graph->greedy();
 
             end = chrono::steady_clock::now();
             elapsed  = end - start;
 
-            printDominatingSet(output_file, &solution);
+            graph->printDominatingSet(output_file, &solution, 1);
 
             break;
         }
-        case 6: {
-            start = chrono::steady_clock::now();
-
+        case 2: {
             float alpha[3] = {0.15, 0.30, 0.50};
 
             vector<Node*> solution;
@@ -218,6 +140,8 @@ void selecionar(int selecao, Graph* graph, ofstream& output_file){
 
             cin >> option;
 
+            start = chrono::steady_clock::now();
+
             switch(option){
                 case 1: solution = graph->greedyRandom(alpha[0], 500); break;
                 case 2: solution = graph->greedyRandom(alpha[1], 500); break;
@@ -227,11 +151,11 @@ void selecionar(int selecao, Graph* graph, ofstream& output_file){
             end = chrono::steady_clock::now();
             elapsed  = end - start;
 
-            printDominatingSet(output_file, &solution);
+            graph->printDominatingSet(output_file, &solution, 2);
 
             break;
         }
-        case 7: {
+        case 3: {
             start = chrono::steady_clock::now();
 
             float alpha[5] = {0.05, 0.10, 0.15, 0.30, 0.50};
@@ -243,18 +167,17 @@ void selecionar(int selecao, Graph* graph, ofstream& output_file){
             end = chrono::steady_clock::now();
             elapsed  = end - start;
 
-            //printDominatingSet(output_file, &solution);
+            graph->printDominatingSet(output_file, &solution, 3);
 
             break;
         }
 
     }
-    if(selecao >= 1 && selecao <= 7) {
-        cout << endl << "TEMPO DE PROCESSAMENTO TOTAL: " << chrono::duration_cast<chrono::nanoseconds>(elapsed).count();
-        cout << "ns" << endl;
+    if(selecao >= 1 && selecao <= 3) {
+        cout << endl << "TEMPO DE PROCESSAMENTO TOTAL: " << chrono::duration_cast<chrono::milliseconds>(elapsed).count();
+        cout << "ms" << endl;
     }
 
-    delete g;
 }
 
 int mainMenu(ofstream& output_file, Graph* graph){
@@ -336,26 +259,6 @@ Graph* leituraSubconjuntoDominante(ifstream& input_file, int directed,  int weig
     }
 
     return graph;
-}
-
-void printDominatingSet(ofstream &outputFile, std::vector<Node*>* solution){
-    outputFile  << "strict graph greedy{" << endl;
-    outputFile  << "\t" << "subgraph cluster_0{" << endl;
-    outputFile  << "\t\tlabel=\"Algoritmo guloso\";" << endl;
-    outputFile  << "\t\tnode [style=filled];" << endl;
-    outputFile  << "\t\tnode [colorscheme=reds9];" << endl;
-
-    std::vector<Node*>::iterator it;
-
-    for (it = solution->begin(); it != solution->end(); it++) {
-        outputFile << "\t\t" << (*it)->getId() << "[fillcolor=5]" << endl;
-        for (Edge* auxEdge = (*it)->getFirstEdge(); auxEdge != nullptr; auxEdge = auxEdge->getNextEdge()) {
-            outputFile << "\t\t" << (*it)->getId()<< "--" << auxEdge->getTargetId() << "[color=9]" << endl;
-        }
-    }
-
-    outputFile << "\t}" << endl;
-    outputFile << "}" << endl;
 }
 
 void imprimeMatriz(ofstream& output_file, Graph* graph){

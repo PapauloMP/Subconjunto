@@ -97,3 +97,49 @@ void Graph::printPert(ofstream &outputFile, std::stack<Node*>& pertPath){
     outputFile << "}" << endl;
 }
 
+void Graph::printDominatingSet(ofstream &outputFile, std::vector<Node*>* solution, int option){
+    string graphType = getGraphType(directed, true);
+    string name;
+    string clusterName;
+    switch(option){
+        case 1: {
+            name = " greedy{";
+            clusterName = "Algoritmo guloso";
+        break;
+        }
+        case 2: {
+            name = " greedyRandomized{";
+            clusterName = "Algoritmo guloso randomizado";
+        break;
+        }
+        case 3: {
+            name = " greedyRandomizedReactive{";
+            clusterName = "Algoritmo guloso randomizado reativo";
+        break;
+        }
+    }
+    outputFile  << graphType << name << endl;
+    outputFile  << "\t" << "subgraph cluster_0{" << endl;
+    outputFile  << "\t\tlabel=\"" << clusterName <<"\";" << endl;
+    outputFile  << "\t\tnode [style=filled];" << endl;
+    outputFile  << "\t\tnode [colorscheme=rdylgn5];" << endl;
+
+    vector<Node*>::iterator it;
+    float cost = 0;
+    cout << "Subconjunto dominante: ";
+
+    for (it = solution->begin(); it != solution->end(); it++) {
+        outputFile << "\t\t" << (*it)->getId() << "[fillcolor=1];" << endl;
+        cost += (*it)->getWeight();
+        cout << (*it)->getId() << ", ";
+        for (Edge* auxEdge = (*it)->getFirstEdge(); auxEdge != nullptr; auxEdge = auxEdge->getNextEdge()) {
+            outputFile << "\t\t" << (*it)->getId()<< "--" << auxEdge->getTargetId() << ";" << endl;
+        }
+    }
+    cout << endl;
+    outputFile << "\"CUSTO = " << cost << "\"[fillcolor=5][shape=note];" << endl;
+    outputFile << "\t}" << endl;
+    outputFile << "}" << endl;
+}
+
+
